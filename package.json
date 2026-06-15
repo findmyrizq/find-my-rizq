@@ -1,0 +1,20 @@
+{
+  "name": "find-my-rizq",
+  "version": "1.0.0",
+  "description": "A values-first job aggregator on Cloudflare Workers + D1, with halal filtering.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create find-my-rizq",
+    "db:init": "wrangler d1 execute find-my-rizq --remote --file=./migrations/0001_init.sql",
+    "db:init:local": "wrangler d1 execute find-my-rizq --local --file=./migrations/0001_init.sql",
+    "fetch:now": "echo 'POST /api/admin/fetch with your ADMIN_TOKEN \u2014 see README'",
+    "db:seed": "wrangler d1 execute find-my-rizq --remote --file=./migrations/0002_seed.sql",
+    "db:seed:local": "wrangler d1 execute find-my-rizq --local --file=./migrations/0002_seed.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

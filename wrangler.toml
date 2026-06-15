@@ -1,0 +1,85 @@
+name = "find-my-rizq"
+main = "src/worker.js"
+compatibility_date = "2024-11-01"
+assets = { directory = "./public" }
+routes = [
+  { pattern = "findmyrizq.co.uk/*", zone_name = "findmyrizq.co.uk" },
+  { pattern = "www.findmyrizq.co.uk/*", zone_name = "findmyrizq.co.uk" }
+]
+
+# Run the aggregator every 10 minutes (free tier supports cron triggers).
+[triggers]
+crons = ["*/10 * * * *"]
+
+# D1 database binding. Create it with:
+#   npx wrangler d1 create find-my-rizq
+# then paste the returned database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "find-my-rizq"
+database_id = "99e1618c-81d3-4395-8ee9-b5bf04712a5e"
+
+# ---------------------------------------------------------------------------
+# Non-secret configuration. Toggle sources, tune filtering, set search queries.
+# Anything sensitive (API keys, ADMIN_TOKEN) should be a SECRET instead:
+#   npx wrangler secret put ADZUNA_APP_KEY
+# ---------------------------------------------------------------------------
+[vars]
+SITE_URL = "https://findmyrizq.co.uk"
+
+# Search queries: newline-separated "keyword | location". Blank = broad pull.
+SEARCH_QUERIES = """
+software developer | London
+software engineer | Remote
+data analyst | London
+nurse | London
+nurse | Birmingham
+teacher | London
+teacher | Birmingham
+engineer | Manchester
+engineer | Leeds
+accountant | London
+social worker | London
+project manager | London
+marketing manager | London
+pharmacist | London
+GP | Bradford
+solicitor | London
+charity | London
+"""
+PER_PAGE = "50"
+EXPIRE_AFTER_HOURS = "72"
+DELETE_AFTER_DAYS = "0"
+
+# Map / geocoding
+ENABLE_GEOCODING = "1"
+GEOCODE_PER_RUN = "15"
+
+# Free, no-key sources — enable as you like ("1" on, "0" off)
+REMOTIVE_ENABLED = "1"
+MUSE_ENABLED = "1"
+ARBEITNOW_ENABLED = "1"
+JOBICY_ENABLED = "1"
+
+# Adzuna country (gb, us, au, ca, ...)
+ADZUNA_COUNTRY = "gb"
+
+# Halal / unwanted-job filtering.
+# EXCLUSION_GROUPS: comma list of groups to enable. Omit to enable ALL.
+# Groups: alcohol, gambling, riba_banking, adult, non_halal_food, tobacco
+EXCLUSION_GROUPS = "alcohol, gambling, riba_banking, adult, non_halal_food, tobacco"
+EXCLUDE_KEYWORDS = ""
+ALLOW_KEYWORDS = "halal, islamic bank, islamic finance, sharia, shariah, takaful, halal investment"
+EXCLUDE_CATEGORIES = ""
+
+# ---------------------------------------------------------------------------
+# SECRETS to set with `npx wrangler secret put <NAME>` (do NOT put keys here):
+#   ADMIN_TOKEN              (any long random string; protects /api/admin/*)
+#   ADZUNA_APP_ID, ADZUNA_APP_KEY
+#   JOOBLE_API_KEY
+#   USAJOBS_API_KEY, USAJOBS_EMAIL
+#   REED_API_KEY
+#   FINDWORK_API_KEY
+#   MUSE_API_KEY            (optional)
+#   *_AFFILIATE_PARAMS      e.g. ADZUNA_AFFILIATE_PARAMS = "subid={job_id}"
+# ---------------------------------------------------------------------------

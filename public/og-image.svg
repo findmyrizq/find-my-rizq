@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c0b0a"/><stop offset="1" stop-color="#1b1410"/>
+    </linearGradient>
+    <linearGradient id="dome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8c42"/><stop offset="1" stop-color="#ff6a1a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="78%" cy="30%" r="55%">
+      <stop offset="0" stop-color="rgba(255,106,26,.35)"/><stop offset="1" stop-color="rgba(255,106,26,0)"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- mosque illustration right -->
+  <g transform="translate(760,150)" opacity="0.96">
+    <path d="M170 0c46 36 70 66 70 104 0 30-30 50-70 50s-70-20-70-50C100 66 124 36 170 0Z" fill="url(#dome)"/>
+    <rect x="76" y="154" width="188" height="170" rx="6" fill="url(#dome)" opacity="0.92"/>
+    <rect x="50" y="80" width="20" height="244" rx="6" fill="url(#dome)"/>
+    <path d="M60 60c10 8 16 16 16 26 0 8-7 14-16 14s-16-6-16-14c0-10 6-18 16-26Z" fill="url(#dome)"/>
+    <rect x="270" y="80" width="20" height="244" rx="6" fill="url(#dome)"/>
+    <path d="M280 60c10 8 16 16 16 26 0 8-7 14-16 14s-16-6-16-14c0-10 6-18 16-26Z" fill="url(#dome)"/>
+    <circle cx="170" cy="-22" r="11" fill="#ffb066"/><circle cx="175" cy="-25" r="9" fill="#0c0b0a"/>
+  </g>
+
+  <!-- wordmark + tagline left -->
+  <g transform="translate(96,250)">
+    <text x="0" y="0" font-family="'Space Grotesk',Arial,sans-serif" font-size="40" font-weight="500" fill="#f6f1ea" letter-spacing="-1">findmy</text>
+    <text x="0" y="78" font-family="'Space Grotesk',Arial,sans-serif" font-size="104" font-weight="700" fill="#ff6a1a" letter-spacing="-5">R</text>
+    <!-- magnifying glass as the i -->
+    <g transform="translate(72,-8)">
+      <circle cx="22" cy="36" r="20" fill="none" stroke="#ff6a1a" stroke-width="9"/>
+      <line x1="37" y1="51" x2="58" y2="72" stroke="#ff6a1a" stroke-width="11" stroke-linecap="round"/>
+    </g>
+    <text x="138" y="78" font-family="'Space Grotesk',Arial,sans-serif" font-size="104" font-weight="700" fill="#ff6a1a" letter-spacing="-5">zq</text>
+    <text x="2" y="138" font-family="Arial,sans-serif" font-size="29" fill="#a59b8f">Honest work, sent your way.</text>
+    <text x="2" y="178" font-family="Arial,sans-serif" font-size="22" fill="#ffb066">Every listing screened · 9 trusted sources</text>
+  </g>
+</svg>

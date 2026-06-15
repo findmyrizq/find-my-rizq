@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find My Rizq — Admin</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0c0b0a;--surface:#1b1816;--surface-2:#221e1a;--line:#312b25;--ink:#f6f1ea;--muted:#a59b8f;--orange:#ff6a1a;--ok:#2fbf71;--danger:#ff5d4d;--radius:14px}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 18px 80px}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:26px;margin:0 0 4px;display:flex;align-items:center;gap:12px}
+  h1 b{color:var(--orange)}
+  .logo{display:inline-flex;align-items:baseline;gap:.02em;font-family:'Poppins',sans-serif;line-height:1;white-space:nowrap}
+  .logo .fm{font-weight:500;font-size:15px;letter-spacing:-.01em;color:var(--ink)}
+  .logo .rz{font-weight:700;font-size:20px;letter-spacing:-.02em;color:var(--orange);display:inline-flex;align-items:center}
+  .logo .glass{width:16px;height:16px;margin:0 -2px;flex:0 0 auto}
+  .logo .glass circle,.logo .glass line{stroke:var(--orange)}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 22px}
+  .gate{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px;max-width:440px}
+  .gate label{display:block;font-size:13px;font-weight:600;margin-bottom:7px;color:#cabfb2}
+  .gate input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--ink);font:inherit;outline:none}
+  .gate input:focus{border-color:var(--orange)}
+  .btn{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:14px;padding:10px 16px;border-radius:10px;border:0;cursor:pointer;font-family:inherit}
+  .btn-primary{background:var(--orange);color:#0c0b0a}
+  .btn-ok{background:var(--ok);color:#04210f}
+  .btn-danger{background:transparent;color:var(--danger);border:1px solid var(--line)}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 26px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .stat .n{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:var(--orange)}
+  .stat .l{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .bar{display:flex;align-items:center;justify-content:space-between;margin:26px 0 14px;gap:12px;flex-wrap:wrap}
+  .bar h2{font-family:'Space Grotesk',sans-serif;font-size:19px;margin:0}
+  .sub-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:12px}
+  .sub-card h3{margin:0 0 4px;font-size:17px;font-family:'Space Grotesk',sans-serif}
+  .sub-card .co{color:var(--muted);font-size:14px;margin-bottom:10px}
+  .sub-card .meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .sub-card .meta span{font-size:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:4px 9px;color:#cabfb2}
+  .sub-card .desc{font-size:13.5px;color:#cabfb2;max-height:120px;overflow:auto;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;margin-bottom:12px}
+  .sub-card .row{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:12px}
+  .sub-card .row a{color:var(--orange)}
+  .actions{display:flex;gap:8px}
+  .empty{color:var(--muted);text-align:center;padding:40px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 18px;font-size:14px;display:none;z-index:10}
+  .toast.show{display:block}
+  @media(max-width:640px){.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="logo"><span class="fm">find<span class="cap">M</span>y</span><span class="rz">R<svg class="glass" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="6.5" stroke-width="2.6"/><line x1="14.8" y1="14.8" x2="21" y2="21" stroke-width="3" stroke-linecap="round"/></svg>zq</span></span> <span style="font-weight:600;color:var(--muted);font-size:18px">· Admin</span></h1>
+  <p class="sub">Review submitted jobs and approve them with one click. Nothing goes live without you.</p>
+
+  <div id="gate" class="gate">
+    <label for="tok">Admin token</label>
+    <input id="tok" type="password" placeholder="Your ADMIN_TOKEN" autocomplete="off">
+    <p style="font-size:12px;color:var(--muted);margin:9px 0 14px">Stored only in this browser tab. Set <code>FMR_API_BASE</code> below if needed.</p>
+    <label for="api" style="margin-top:4px">API base URL</label>
+    <input id="api" type="text" placeholder="https://find-my-rizq.YOURNAME.workers.dev" style="margin-bottom:14px">
+    <button class="btn btn-primary" id="login">Unlock</button>
+    <p id="gate-msg" style="color:var(--danger);font-size:13px;margin:10px 0 0;display:none"></p>
+  </div>
+
+  <div id="panel" style="display:none">
+    <div class="stats" id="stats"></div>
+
+    <div class="bar">
+      <h2>Pending submissions (<span id="pcount">0</span>)</h2>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" id="refresh">Refresh</button>
+        <button class="btn btn-primary" id="run-fetch">Run fetch now</button>
+      </div>
+    </div>
+    <div id="subs"></div>
+
+    <div class="bar"><h2>Recent fetch runs</h2></div>
+    <div class="sub-card" style="padding:0;overflow:auto">
+      <table id="runs"><thead><tr><th>When</th><th>Fetched</th><th>New</th><th>Updated</th><th>Excluded</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div class="bar"><h2>Clicks by source</h2></div>
+    <div class="sub-card" style="padding:0;overflow:auto">
+      <table id="clicks"><thead><tr><th>Day</th><th>Source</th><th>Clicks</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  const $=s=>document.querySelector(s);
+  let API=localStorage.getItem('fmr_api')||'http://localhost:8787';
+  let TOKEN=sessionStorage.getItem('fmr_token')||'';
+  $('#api').value=API;
+
+  const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);};
+  const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const hdr=()=>({'Authorization':`Bearer ${TOKEN}`});
+
+  async function api(path,opts={}){
+    const r=await fetch(`${API}${path}`,{...opts,headers:{...hdr(),...(opts.headers||{})}});
+    if(r.status===401)throw new Error('Unauthorized');
+    return r.json();
+  }
+
+  $('#login').addEventListener('click',async()=>{
+    TOKEN=$('#tok').value.trim();API=$('#api').value.trim()||API;
+    localStorage.setItem('fmr_api',API);
+    try{
+      await api('/api/admin/submissions');
+      sessionStorage.setItem('fmr_token',TOKEN);
+      $('#gate').style.display='none';$('#panel').style.display='block';
+      loadAll();
+    }catch(e){const m=$('#gate-msg');m.style.display='block';m.textContent='Could not unlock — check the token and API URL.';}
+  });
+
+  async function loadAll(){loadSubs();loadStatus();}
+
+  async function loadSubs(){
+    const d=await api('/api/admin/submissions');
+    const subs=d.pending||[];
+    $('#pcount').textContent=subs.length;
+    const el=$('#subs');
+    if(!subs.length){el.innerHTML=`<div class="empty">No submissions waiting. You're all caught up.</div>`;updateStats(0);return;}
+    updateStats(subs.length);
+    el.innerHTML=subs.map(s=>`<div class="sub-card" data-id="${s.id}">
+      <h3>${esc(s.title)}</h3>
+      <div class="co">${esc(s.company)}</div>
+      <div class="meta">${s.location?`<span>${esc(s.location)}</span>`:''}${s.salary?`<span>${esc(s.salary)}</span>`:''}${s.job_type?`<span>${esc(s.job_type)}</span>`:''}${s.category?`<span>${esc(s.category)}</span>`:''}${s.remote?`<span>Remote</span>`:''}</div>
+      <div class="desc">${esc(s.description)}</div>
+      <div class="row"><span>Apply: <a href="${esc(s.apply_url)}" target="_blank" rel="noopener">${esc(s.apply_url)}</a></span>${s.contact_email?`<span>Contact: ${esc(s.contact_email)}</span>`:''}<span>IP: ${esc(s.submitter_ip||'—')}</span></div>
+      <div class="actions"><button class="btn btn-ok" data-act="approve" data-id="${s.id}">Approve</button><button class="btn btn-danger" data-act="reject" data-id="${s.id}">Reject</button></div>
+    </div>`).join('');
+  }
+
+  $('#subs').addEventListener('click',async e=>{
+    const b=e.target.closest('button[data-act]');if(!b)return;
+    b.disabled=true;b.textContent=b.dataset.act==='approve'?'Approving…':'Rejecting…';
+    try{
+      await api(`/api/admin/submissions/${b.dataset.id}/${b.dataset.act}`,{method:'POST'});
+      toast(b.dataset.act==='approve'?'Job approved & live':'Submission rejected');
+      const card=b.closest('.sub-card');card.style.transition='opacity .2s';card.style.opacity='0';
+      setTimeout(()=>{card.remove();const n=document.querySelectorAll('#subs .sub-card').length;$('#pcount').textContent=n;updateStats(n);if(!n)$('#subs').innerHTML=`<div class="empty">No submissions waiting. You're all caught up.</div>`;},200);
+    }catch(_){b.disabled=false;b.textContent=b.dataset.act==='approve'?'Approve':'Reject';toast('Action failed');}
+  });
+
+  async function loadStatus(){
+    try{
+      const d=await api('/api/admin/status');
+      const rb=$('#runs tbody');
+      rb.innerHTML=(d.runs||[]).map(r=>`<tr><td>${new Date(r.ran_at*1000).toLocaleString()}</td><td>${r.fetched}</td><td>${r.inserted}</td><td>${r.updated}</td><td>${r.excluded}</td></tr>`).join('')||`<tr><td colspan="5" style="color:var(--muted)">No runs yet.</td></tr>`;
+      const cb=$('#clicks tbody');
+      cb.innerHTML=(d.clicks||[]).map(c=>`<tr><td>${esc(c.day)}</td><td>${esc(c.source)}</td><td>${c.clicks}</td></tr>`).join('')||`<tr><td colspan="3" style="color:var(--muted)">No clicks yet.</td></tr>`;
+    }catch(_){}
+  }
+
+  function updateStats(pending){
+    $('#stats').innerHTML=[['Pending',pending,'#ff6a1a'],['Status','live','#2fbf71']].map(([l,n])=>`<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('')+
+      `<div class="stat"><div class="n" id="live-n">—</div><div class="l">Live jobs</div></div><div class="stat"><div class="n" id="clk-n">—</div><div class="l">Clicks (60d)</div></div>`;
+    fetch(`${API}/api/meta`).then(r=>r.json()).then(m=>{if($('#live-n'))$('#live-n').textContent=(m.liveCount||0).toLocaleString();}).catch(()=>{});
+  }
+
+  $('#refresh').addEventListener('click',loadAll);
+  $('#run-fetch').addEventListener('click',async()=>{
+    const b=$('#run-fetch');b.disabled=true;b.textContent='Fetching…';
+    try{const d=await api('/api/admin/fetch',{method:'POST'});toast(`Fetched ${d.summary.fetched}, ${d.summary.inserted} new, ${d.summary.excluded} excluded`);loadAll();}
+    catch(_){toast('Fetch failed');}
+    b.disabled=false;b.textContent='Run fetch now';
+  });
+
+  // auto-unlock if token already in session
+  if(TOKEN){$('#login').click();}
+})();
+</script>
+</body>
+</html>

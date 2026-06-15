@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local `wrangler dev`. Do NOT commit .dev.vars.
+ADMIN_TOKEN=local-dev-token
+# ADZUNA_APP_ID=
+# ADZUNA_APP_KEY=
+# REED_API_KEY=
+# FINDWORK_API_KEY=
+# JOOBLE_API_KEY=
+# USAJOBS_API_KEY=
+# USAJOBS_EMAIL=

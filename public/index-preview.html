@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Find My Rizq — Honest work, sent your way</title>
+<meta name="description" content="A values-first job board. Real roles, screened to exclude work tied to alcohol, gambling, interest-based finance and more.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<meta name="theme-color" content="#0c0b0a">
+<meta name="color-scheme" content="dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Find My Rizq — Honest work, sent your way">
+<meta property="og:description" content="A values-first job board. Every listing screened to exclude alcohol, gambling, interest-based finance and more.">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Find My Rizq — Honest work, sent your way">
+<meta name="twitter:description" content="Every listing screened to exclude alcohol, gambling, interest-based finance and more.">
+<meta name="twitter:image" content="/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="dns-prefetch" href="https://tile.openstreetmap.org">
+<link rel="dns-prefetch" href="https://overpass-api.de">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{
+    --bg:#0c0b0a;--bg-2:#141210;--surface:#1b1816;--surface-2:#221e1a;--line:#312b25;
+    --ink:#f6f1ea;--muted:#a59b8f;--orange:#ff6a1a;--orange-2:#ff8c42;--ember:#ffb066;
+    --orange-ink:#0c0b0a;--ok:#2fbf71;--danger:#ff5d4d;--radius:16px;
+    --shadow:0 10px 40px rgba(0,0,0,.45);--glow:0 0 0 1px rgba(255,106,26,.25),0 12px 40px rgba(255,106,26,.18);--maxw:1140px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  .wrap{width:100%;max-width:var(--maxw);margin:0 auto;padding:0 clamp(14px,4vw,20px)}
+  button{font-family:inherit}
+
+  header.site{position:sticky;top:0;z-index:60;background:rgba(12,11,10,.78);backdrop-filter:saturate(150%) blur(14px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:16px;height:66px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.01em}
+  .brand .flame{width:32px;height:32px;flex:0 0 auto}
+  .brand b{color:var(--orange)}
+  /* wordmark logo — Poppins, camelCase, fluid */
+  .wordmark{display:inline-flex;align-items:baseline;gap:0.02em;font-family:'Poppins',sans-serif;line-height:1;-webkit-font-smoothing:antialiased;white-space:nowrap;font-size:clamp(17px,1.4vw + 13px,22px)}
+  .wordmark .fm{font-weight:500;font-size:.86em;letter-spacing:-.01em;color:var(--ink)}
+  .wordmark .fm .cap{text-transform:none}
+  .wordmark .rz{font-weight:700;font-size:1.04em;letter-spacing:-.02em;color:var(--orange);display:inline-flex;align-items:center}
+  .wordmark .glass{width:.74em;height:.74em;margin:0 -.04em;flex:0 0 auto;transform:translateY(.04em)}
+  .wordmark .glass line,.wordmark .glass circle{stroke:var(--orange)}
+  .nav .spacer{flex:1}
+  .nav-links{display:flex;gap:24px;align-items:center}
+  .nav-links a{color:var(--muted);font-weight:500;font-size:15px}
+  .nav-links a:hover{color:var(--ember)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15px;padding:11px 18px;border-radius:999px;border:1px solid transparent;cursor:pointer;transition:transform .12s,filter .2s,background .2s,box-shadow .2s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:linear-gradient(135deg,var(--orange),var(--orange-2));color:var(--orange-ink);box-shadow:var(--glow)}
+  .btn-primary:hover{filter:brightness(1.07)}
+  .btn-ghost{background:transparent;color:var(--ember);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+  .menu-toggle{display:none;background:none;border:0;padding:8px;cursor:pointer}
+  .menu-toggle svg{width:26px;height:26px;stroke:var(--ink)}
+
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero:before{content:"";position:absolute;inset:0;z-index:0;background:radial-gradient(60% 80% at 80% -10%,rgba(255,106,26,.20),transparent 60%),radial-gradient(50% 60% at 0% 110%,rgba(255,140,66,.10),transparent 60%)}
+  .ember-field{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .ember-field i{position:absolute;bottom:-10px;width:4px;height:4px;border-radius:50%;background:var(--orange);opacity:0;filter:blur(.3px);animation:rise linear infinite}
+  @keyframes rise{0%{transform:translateY(0) scale(1);opacity:0}10%{opacity:.8}90%{opacity:.5}100%{transform:translateY(-460px) scale(.4);opacity:0}}
+  .hero-inner{position:relative;z-index:2;padding:clamp(38px,7vw,72px) 0 clamp(30px,5vw,54px)}
+  .hero-art{position:absolute;right:0;bottom:0;height:88%;max-height:440px;width:auto;z-index:1;opacity:.9;pointer-events:none;filter:drop-shadow(0 0 40px rgba(255,106,26,.25))}
+  @media (max-width:980px){.hero-art{opacity:.16;height:70%}}
+  @media (max-width:640px){.hero-art{display:none}}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ember);background:rgba(255,106,26,.10);border:1px solid rgba(255,106,26,.25);padding:7px 13px;border-radius:999px;margin-bottom:24px}
+  .eyebrow .spark{width:7px;height:7px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px 2px var(--orange)}
+  h1.display{font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.025em;font-size:clamp(34px,6.4vw,72px);line-height:1.04;margin:0 0 20px;max-width:15ch;overflow-wrap:break-word}
+  h1.display .fire{background:linear-gradient(135deg,var(--orange),var(--ember));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:clamp(15px,1vw + 13px,20px);color:var(--muted);max-width:52ch;margin:0 0 34px}
+
+  .searchbar{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px;display:grid;grid-template-columns:1fr 1fr auto;gap:8px;max-width:780px}
+  .field{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:11px}
+  .field:focus-within{background:var(--surface-2)}
+  .field svg{width:18px;height:18px;stroke:var(--orange);flex:0 0 auto}
+  .field input{border:0;background:transparent;font:inherit;font-size:15px;width:100%;color:var(--ink);padding:9px 0;outline:none}
+  .field input::placeholder{color:#7c7268}
+  .field.div{border-left:1px solid var(--line);border-radius:0}
+  .searchbar .btn-primary{width:100%;height:100%;min-height:46px}
+
+  .trust-row{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:24px;align-items:center}
+  .trust-row .pill{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--muted);font-weight:500}
+  .trust-row .pill svg{width:16px;height:16px;stroke:var(--orange)}
+
+  .manifest{background:var(--bg-2);position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .manifest .wrap{position:relative;padding:clamp(40px,6vw,58px) clamp(14px,4vw,20px)}
+  .manifest h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(24px,4vw,36px);letter-spacing:-.015em;margin:0 0 8px}
+  .manifest p.sub{color:var(--muted);max-width:56ch;margin:0 0 30px;font-size:16px}
+  .fire{background:linear-gradient(135deg,var(--orange),var(--ember));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .filter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .fcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;gap:13px;align-items:flex-start;transition:border-color .2s,transform .2s}
+  .fcard:hover{border-color:rgba(255,106,26,.4);transform:translateY(-2px)}
+  .fcard .x{width:34px;height:34px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;background:rgba(255,93,77,.12);border:1px solid rgba(255,93,77,.3)}
+  .fcard .x svg{width:17px;height:17px;stroke:var(--danger)}
+  .fcard h3{margin:0 0 3px;font-size:15.5px;font-weight:600}
+  .fcard p{margin:0;font-size:13px;color:var(--muted);line-height:1.45}
+  .manifest .note{margin-top:26px;font-size:13.5px;color:#8a8076;display:flex;gap:9px;align-items:center}
+  .manifest .note svg{width:16px;height:16px;stroke:var(--ember);flex:0 0 auto}
+
+  .board{padding:clamp(40px,6vw,58px) 0 clamp(50px,8vw,84px)}
+  .board-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:24px;flex-wrap:wrap}
+  .board-head h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(24px,4vw,34px);margin:0;letter-spacing:-.015em}
+  .board-head .count{color:var(--muted);font-size:14.5px;margin-top:5px}
+  .chips{display:flex;gap:9px;flex-wrap:wrap}
+  .chip{font-size:13.5px;font-weight:500;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;transition:.15s;white-space:nowrap}
+  .chip:hover{border-color:var(--orange);color:var(--ember)}
+  .chip.active{background:linear-gradient(135deg,var(--orange),var(--orange-2));border-color:transparent;color:var(--orange-ink);font-weight:600}
+  .masjid-filter{display:flex;align-items:center;gap:10px;margin:0 0 20px;flex-wrap:wrap}
+  .masjid-toggle{display:inline-flex;align-items:center;gap:7px}
+  .masjid-toggle svg{width:15px;height:15px;stroke:currentColor}
+  .masjid-toggle[aria-pressed="true"]{background:rgba(255,176,102,.12);border-color:rgba(255,176,102,.4);color:var(--ember)}
+  .masjid-dist{background:var(--surface);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 12px;font:inherit;font-size:13.5px;cursor:pointer;outline:none}
+  .masjid-dist:focus{border-color:var(--orange)}
+  .masjid-dist:disabled{opacity:.5;cursor:default}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:26px;align-items:start}
+  .jobs{display:flex;flex-direction:column;gap:14px}
+  .job{content-visibility:auto;contain-intrinsic-size:auto 150px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;transition:border-color .18s,box-shadow .18s,transform .18s;cursor:pointer}
+  .job:hover{border-color:rgba(255,106,26,.45);box-shadow:var(--glow);transform:translateY(-2px)}
+  .job.sel{border-color:var(--orange);box-shadow:var(--glow)}
+  .job-top{display:flex;gap:14px;align-items:flex-start}
+  .logo{position:relative;width:48px;height:48px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;overflow:hidden;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;color:var(--orange-ink)}
+  .logo .ini{position:relative;z-index:1}
+  .logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#fff;z-index:2}
+  .faith-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .masjid{display:flex;align-items:center;gap:6px;margin-top:0;font-size:12.5px;color:var(--ember);background:rgba(255,176,102,.07);border:1px solid rgba(255,176,102,.18);border-radius:8px;padding:5px 9px;width:fit-content;max-width:100%}
+  .prayer{display:flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:5px 9px;width:fit-content;max-width:100%;transition:.15s}
+  .prayer:hover{border-color:var(--orange);color:var(--ember)}
+  .prayer svg{width:14px;height:14px;flex:0 0 auto;stroke:currentColor}
+  .prayer span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .prayer.yes{background:rgba(47,191,113,.10);border-color:rgba(47,191,113,.3);color:#7fe0a8}
+  .prayer.no{background:rgba(255,93,77,.08);border-color:rgba(255,93,77,.25);color:#e89488}
+  .prayer.maybe{background:rgba(255,176,102,.08);border-color:rgba(255,176,102,.25);color:var(--ember)}
+  .prayer-choice{display:flex;gap:10px}
+  .pc-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;font:inherit;font-size:14px;font-weight:500;padding:13px;border-radius:11px;border:1px solid var(--line);background:var(--bg-2);color:var(--muted);cursor:pointer;transition:.15s}
+  .pc-btn svg{width:16px;height:16px}
+  .pc-btn:hover{border-color:var(--orange);color:var(--ember)}
+  .pc-btn.sel{border-color:var(--orange);background:rgba(255,106,26,.12);color:var(--ember)}
+  .masjid svg{width:14px;height:14px;flex:0 0 auto;stroke:var(--ember)}
+  .masjid span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .job h3{margin:0 0 3px;font-size:17.5px;font-weight:600;letter-spacing:-.01em}
+  .job .co{font-size:14px;color:var(--muted);font-weight:500}
+  .job .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+  .tag{font-size:12.5px;font-weight:500;padding:5px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);color:#cabfb2;display:inline-flex;align-items:center;gap:5px}
+  .tag svg{width:13px;height:13px;stroke:currentColor}
+  .tag.salary{background:rgba(47,191,113,.10);border-color:rgba(47,191,113,.3);color:#7fe0a8;font-weight:600}
+  .tag.remote{background:rgba(255,106,26,.10);border-color:rgba(255,106,26,.3);color:var(--ember)}
+  .tag.posted{background:rgba(255,176,102,.08);border-color:rgba(255,176,102,.25);color:var(--ember)}
+  .job-foot{display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:12px}
+  .via{font-size:12.5px;color:#7c7268}
+  .apply{font-weight:600;font-size:14px;color:var(--orange);display:inline-flex;align-items:center;gap:6px}
+  .apply svg{width:15px;height:15px;stroke:currentColor;transition:transform .15s}
+  .job:hover .apply svg{transform:translate(2px,-2px)}
+
+  .rail{position:sticky;top:86px;display:flex;flex-direction:column;gap:14px}
+  .map-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  #map{height:clamp(220px,32vw,340px);width:100%;background:#23201c;aspect-ratio:auto}
+  .leaflet-container{background:#23201c}
+  .map-meta{padding:15px 17px;border-top:1px solid var(--line)}
+  .map-meta .mt{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:#7c7268;font-weight:600;margin-bottom:4px}
+  .map-meta h4{margin:0 0 2px;font-size:16px;font-family:'Space Grotesk',sans-serif;font-weight:600}
+  .map-meta p{margin:0;font-size:13.5px;color:var(--muted)}
+  .post-cta{background:linear-gradient(135deg,rgba(255,106,26,.14),rgba(255,140,66,.06));border:1px solid rgba(255,106,26,.3);border-radius:var(--radius);padding:20px}
+  .post-cta h4{margin:0 0 6px;font-family:'Space Grotesk',sans-serif;font-size:17px}
+  .post-cta p{margin:0 0 14px;font-size:13.5px;color:var(--muted)}
+  .ad-slot{border:1px dashed #3a332c;border-radius:12px;padding:18px;text-align:center;color:#6f655b;font-size:12.5px}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(5,4,3,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--line);border-radius:20px;max-width:560px;width:100%;box-shadow:var(--shadow);padding:28px;position:relative;margin:auto}
+  .modal h2{font-family:'Space Grotesk',sans-serif;font-size:24px;margin:0 0 4px}
+  .modal .sub{color:var(--muted);font-size:14.5px;margin:0 0 22px}
+  .modal-close{position:absolute;top:18px;right:18px;background:none;border:0;cursor:pointer;padding:6px}
+  .modal-close svg{width:22px;height:22px;stroke:var(--muted)}
+  .fld{margin-bottom:14px}
+  .fld label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#cabfb2}
+  .fld label .req{color:var(--orange)}
+  .fld input,.fld textarea,.fld select{width:100%;background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font:inherit;font-size:14.5px;color:var(--ink);outline:none}
+  .fld input:focus,.fld textarea:focus,.fld select:focus{border-color:var(--orange)}
+  .fld textarea{min-height:96px;resize:vertical}
+  .fld-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
+  .captcha{display:flex;align-items:center;gap:12px;background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:16px}
+  .captcha .q{font-weight:600;font-size:15px}
+  .captcha input{width:80px;text-align:center}
+  .check-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:18px;font-size:14px;color:#cabfb2}
+  .check-row input{width:auto;margin-top:3px}
+  .modal .btn-primary{width:100%;min-height:48px;font-size:15.5px}
+  .form-msg{margin-top:14px;font-size:14px;text-align:center;display:none}
+  .form-msg.ok{display:block;color:var(--ok)}
+  .form-msg.err{display:block;color:var(--danger)}
+
+  footer.site{background:var(--bg-2);color:var(--muted);padding:50px 0 34px;border-top:1px solid var(--line)}
+  .foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:30px}
+  footer .brand{color:var(--ink)}
+  footer p.blurb{font-size:14px;color:#8a8076;max-width:34ch;margin:14px 0 0}
+  .foot-col h5{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:#7c7268;margin:0 0 14px;font-weight:600}
+  .foot-col a{display:block;color:#cabfb2;font-size:14.5px;padding:5px 0}
+  .foot-col a:hover{color:var(--orange)}
+  .foot-base{border-top:1px solid var(--line);margin-top:36px;padding-top:22px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:13px;color:#7c7268}
+
+  @media (max-width:900px){.layout{grid-template-columns:1fr}.rail{position:static;order:-1}#map{height:240px}.filter-grid{grid-template-columns:1fr 1fr}.foot-grid{grid-template-columns:1fr 1fr}}
+  @media (max-width:640px){.nav-links{display:none}.nav .btn-ghost{display:none}.menu-toggle{display:block}.hero-inner{padding:46px 0 36px}.searchbar{grid-template-columns:1fr;padding:8px}.field.div{border-left:0;border-top:1px solid var(--line);border-radius:0}.searchbar .btn-primary{min-height:50px;margin-top:2px}.filter-grid{grid-template-columns:1fr}.board-head{flex-direction:column;align-items:flex-start}.chips{width:100%;overflow-x:auto;padding-bottom:4px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}.fld-row{grid-template-columns:1fr}.modal{padding:22px}}
+  @media (max-width:380px){.foot-grid{grid-template-columns:1fr}.hero-inner{padding:36px 0 30px}.nav{height:58px}.btn{padding:9px 14px;font-size:14px}.trust-row{gap:8px 16px}.trust-row .pill{font-size:12.5px}}
+  @media (max-width:340px){h1.display{font-size:30px}.eyebrow{font-size:11px}}
+  html,body{overflow-x:hidden;max-width:100%}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  .skip-link{position:absolute;left:-999px;top:0;z-index:200;background:var(--orange);color:#0c0b0a;padding:10px 16px;border-radius:0 0 8px 0;font-weight:600}
+  .skip-link:focus{left:0}
+  a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,.chip:focus-visible,.job:focus-visible{outline:2px solid var(--orange);outline-offset:2px;border-radius:8px}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Find My Rizq","url":"https://findmyrizq.com","description":"A values-first job board that screens out work tied to alcohol, gambling, interest-based finance and more.","potentialAction":{"@type":"SearchAction","target":"https://findmyrizq.com/?jq={search_term_string}","query-input":"required name=search_term_string"}}</script>
+</head>
+<body>
+<a href="#board" class="skip-link">Skip to jobs</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="flameGrad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#ff6a1a"/><stop offset="1" stop-color="#ffb066"/></linearGradient>
+</defs></svg>
+
+<header class="site">
+  <div class="wrap nav">
+    <a class="brand" href="#" aria-label="Find My Rizq home">
+      <span class="wordmark"><span class="fm">find<span class="cap">M</span>y</span><span class="rz">R<svg class="glass" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="6.5" stroke-width="2.6"/><line x1="14.8" y1="14.8" x2="21" y2="21" stroke-width="3" stroke-linecap="round"/></svg>zq</span></span>
+    </a>
+    <div class="spacer"></div>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#board">Browse jobs</a>
+      <a href="#filter">What we screen</a>
+      <a href="#" id="nav-post">Post a job</a>
+    </nav>
+    <a class="btn btn-ghost" href="#" id="post-btn-2">Post a job · free</a>
+    <a class="btn btn-primary" href="#board">Find work</a>
+    <button class="menu-toggle" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/></svg></button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="ember-field" id="embers" aria-hidden="true"></div>
+  <svg class="hero-art" viewBox="0 0 600 400" fill="none" aria-hidden="true" preserveAspectRatio="xMaxYMax slice">
+    <defs>
+      <linearGradient id="domeG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8c42"/><stop offset="1" stop-color="#ff6a1a"/></linearGradient>
+      <linearGradient id="domeG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9762f"/><stop offset="1" stop-color="#8a4a18"/></linearGradient>
+    </defs>
+    <!-- back skyline -->
+    <g opacity="0.35">
+      <path d="M70 400V250c0-26 22-46 22-46s22 20 22 46v150Z" fill="url(#domeG2)"/>
+      <rect x="60" y="300" width="64" height="100" fill="url(#domeG2)"/>
+      <path d="M450 400V230c0-30 26-52 26-52s26 22 26 52v170Z" fill="url(#domeG2)"/>
+      <rect x="436" y="290" width="80" height="110" fill="url(#domeG2)"/>
+    </g>
+    <!-- main mosque -->
+    <g>
+      <path d="M300 90c46 36 70 66 70 104 0 30-30 50-70 50s-70-20-70-50c0-38 24-68 70-104Z" fill="url(#domeG)"/>
+      <rect x="206" y="244" width="188" height="156" rx="6" fill="url(#domeG)" opacity="0.92"/>
+      <path d="M240 244v-20a60 60 0 0 1 120 0v20Z" fill="url(#domeG)" opacity="0.5"/>
+      <!-- minarets -->
+      <rect x="180" y="170" width="20" height="230" rx="6" fill="url(#domeG)"/>
+      <path d="M190 150c10 8 16 16 16 26 0 8-7 14-16 14s-16-6-16-14c0-10 6-18 16-26Z" fill="url(#domeG)"/>
+      <rect x="400" y="170" width="20" height="230" rx="6" fill="url(#domeG)"/>
+      <path d="M410 150c10 8 16 16 16 26 0 8-7 14-16 14s-16-6-16-14c0-10 6-18 16-26Z" fill="url(#domeG)"/>
+      <!-- crescent -->
+      <circle cx="300" cy="70" r="9" fill="#ffb066"/><circle cx="304" cy="68" r="7" fill="#0c0b0a"/>
+      <!-- arched door -->
+      <path d="M286 400v-70a14 14 0 0 1 28 0v70Z" fill="#0c0b0a" opacity="0.35"/>
+    </g>
+  </svg>
+  <div class="wrap hero-inner">
+    <span class="eyebrow"><span class="spark"></span> Every listing screened</span>
+    <h1 class="display">Honest work, <span class="fire">sent your way.</span></h1>
+    <p class="lede">A job board that filters out roles tied to alcohol, gambling, interest-based finance and more — so every opportunity you see sits right with your values.</p>
+    <form class="searchbar" id="searchbar" role="search" aria-label="Job search">
+      <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg><input type="text" placeholder="Job title or keyword" aria-label="Job title or keyword"></div>
+      <div class="field div"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg><input type="text" placeholder="City or 'Remote'" aria-label="Location"></div>
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+    <div class="trust-row">
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m5 13 4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg> <span id="trust-count">Live roles</span></span>
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2 4 6v6c0 5 8 8 8 8s8-3 8-8V6l-8-4Z"/></svg> 9 trusted sources</span>
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 8v5m0 3h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke-linecap="round"/></svg> Refreshed every 10 min</span>
+    </div>
+  </div>
+</section>
+
+<section class="manifest" id="filter">
+  <div class="wrap">
+    <h2>You decide what gets <span class="fire">filtered out.</span></h2>
+    <p class="sub">These are on by default. Exceptions like Islamic banking and halal food businesses always come through.</p>
+    <div class="filter-grid" id="filter-grid"></div>
+    <p class="note"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 9v4m0 3h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round"/></svg> Keyword screening is a strong first pass, not a fatwa — always review a role's details yourself.</p>
+  </div>
+</section>
+
+<section class="board" id="board">
+  <div class="wrap">
+    <div class="board-head">
+      <div><h2>Latest opportunities</h2><div class="count" id="count">Loading…</div></div>
+      <div class="chips" id="chips" role="tablist" aria-label="Filter by category">
+        <button class="chip active" data-full="All">All</button>
+        <button class="chip" data-full="Technology &amp; IT">Technology</button>
+        <button class="chip" data-full="Healthcare &amp; Medical">Healthcare</button>
+        <button class="chip" data-full="Education &amp; Training">Education</button>
+        <button class="chip" data-full="Remote">Remote</button>
+      </div>
+    </div>
+    <div class="masjid-filter">
+      <button class="chip masjid-toggle" id="masjid-toggle" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" aria-hidden="true"><path d="M12 2c2.5 2 4 3.8 4 6 0 1.6-1.4 3-4 3s-4-1.4-4-3c0-2.2 1.5-4 4-6Z"/><path d="M4 21v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6"/><path d="M4 21h16M9 21v-3a3 3 0 0 1 6 0v3"/></svg>
+        Near a masjid
+      </button>
+      <select id="masjid-dist" class="masjid-dist" aria-label="Maximum distance to masjid">
+        <option value="1">within 1 km</option>
+        <option value="2" selected>within 2 km</option>
+        <option value="5">within 5 km</option>
+      </select>
+    </div>
+    <div class="layout">
+      <div class="jobs" id="jobs"></div>
+      <aside class="rail">
+        <div class="map-card">
+          <div id="map" role="img" aria-label="Map of the selected job location"></div>
+          <div class="map-meta"><div class="mt">Selected role</div><h4 id="map-title">—</h4><p id="map-loc">—</p></div>
+        </div>
+        <div class="post-cta">
+          <h4>Hiring? Post for free.</h4>
+          <p>List a role at no cost. We check it's not spam, then approve it by hand.</p>
+          <button class="btn btn-primary" id="post-btn-3" style="width:100%">Post a job</button>
+        </div>
+        <div class="ad-slot">Advert · 300×250<br><span style="opacity:.7">(AdSense renders here live)</span></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#"><span class="wordmark"><span class="fm">find<span class="cap">M</span>y</span><span class="rz">R<svg class="glass" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="6.5" stroke-width="2.6"/><line x1="14.8" y1="14.8" x2="21" y2="21" stroke-width="3" stroke-linecap="round"/></svg>zq</span></span></a>
+        <p class="blurb">Values-first job search. Real roles, screened so your work and your deen stay aligned.</p>
+      </div>
+      <div class="foot-col"><h5>Explore</h5><a href="#board">Browse all jobs</a><a href="#board">Remote roles</a><a href="#filter">What we screen</a></div>
+      <div class="foot-col"><h5>Employers</h5><a href="#" class="post-link">Post a job · free</a><a href="#">How approval works</a></div>
+      <div class="foot-col"><h5>Legal</h5><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Disclaimer</a></div>
+    </div>
+    <div class="foot-base"><span>© 2026 Find My Rizq. Aggregated listings link to their original source.</span><span>Built on Cloudflare · Open source</span></div>
+  </div>
+</footer>
+
+<div class="modal-bg" id="prayer-modal" role="dialog" aria-modal="true" aria-labelledby="prayer-title">
+  <div class="modal" style="max-width:440px">
+    <button class="modal-close" id="prayer-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg></button>
+    <h2 id="prayer-title">Prayer room</h2>
+    <p class="sub">Help others by sharing whether <strong id="prayer-co">this workplace</strong> has a prayer or quiet room. We combine community reports with public map data — we never guess.</p>
+    <form id="prayer-form">
+      <input type="text" class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="prayer-choice">
+        <button type="button" class="pc-btn" data-val="1"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m5 13 4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg> Yes, there is one</button>
+        <button type="button" class="pc-btn" data-val="0"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg> No prayer room</button>
+      </div>
+      <div class="fld" style="margin-top:14px"><label>Detail (optional)</label><input name="detail" maxlength="200" placeholder="e.g. 3rd floor, wudu facilities nearby"></div>
+      <button type="submit" class="btn btn-primary" id="prayer-submit" disabled style="width:100%;min-height:46px">Submit report</button>
+      <div class="form-msg" id="prayer-msg"></div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <button class="modal-close" id="modal-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg></button>
+    <h2 id="modal-title">Post a job</h2>
+    <p class="sub">Free to list. We review every submission by hand before it goes live.</p>
+    <form id="post-form">
+      <input type="text" class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="fld"><label>Job title <span class="req">*</span></label><input name="title" maxlength="200" required></div>
+      <div class="fld"><label>Company <span class="req">*</span></label><input name="company" maxlength="160" required></div>
+      <div class="fld-row">
+        <div class="fld"><label>Location</label><input name="location" maxlength="160" placeholder="e.g. London or Remote"></div>
+        <div class="fld"><label>Salary</label><input name="salary" maxlength="80" placeholder="e.g. £30k–£40k"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label>Job type</label><select name="job_type"><option value="">Select…</option><option>Full Time</option><option>Part Time</option><option>Contract</option><option>Temporary</option><option>Permanent</option><option>Internship</option><option>Apprenticeship</option></select></div>
+        <div class="fld"><label>Category</label><select name="category"><option value="">Select…</option><option>Technology &amp; IT</option><option>Healthcare &amp; Medical</option><option>Finance &amp; Accounting</option><option>Sales &amp; Marketing</option><option>Education &amp; Training</option><option>Engineering</option><option>Hospitality &amp; Catering</option><option>Construction &amp; Trades</option><option>Transport &amp; Logistics</option><option>Customer Service</option><option>Admin &amp; Office</option><option>Other</option></select></div>
+      </div>
+      <div class="fld"><label>Description <span class="req">*</span></label><textarea name="description" maxlength="6000" required></textarea></div>
+      <div class="fld"><label>Apply link <span class="req">*</span></label><input name="apply_url" maxlength="300" placeholder="https://…" required></div>
+      <div class="fld"><label>Your contact email (private)</label><input name="contact_email" type="email" maxlength="160"></div>
+      <div class="check-row"><input type="checkbox" id="halal-ok" required><label for="halal-ok" style="margin:0;font-weight:500">This role doesn't involve alcohol, gambling, riba, or other excluded work.</label></div>
+      <div class="captcha"><span class="q" id="captcha-q">Verify: … = ?</span><input type="number" name="answer" id="captcha-a" placeholder="?" required></div>
+      <button type="submit" class="btn btn-primary" id="post-submit">Submit for review</button>
+      <div class="form-msg" id="form-msg"></div>
+    </form>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script>
+  // Set after deploy: window.FMR_API_BASE = "https://find-my-rizq.YOURNAME.workers.dev";
+  window.FMR_API_BASE = window.FMR_API_BASE || "http://localhost:8787";
+</script>
+<script>
+(function(){
+  "use strict";
+  const API = window.FMR_API_BASE;
+
+  const PREVIEW=[{"id": 1, "title": "Senior Product Analyst", "company": "Flix", "type": "Full Time", "location": "München, Bayern, Germany", "lat": 48.1351, "lng": 11.582, "salary": "", "remote": false, "via": "arbeitnow", "posted": 1781469920, "applyPath": "", "category": "Technology & IT", "url": "https://www.arbeitnow.com/jobs/companies/flix/senior-product-analyst-munchen-21748", "desc": "Be the analytical backbone of our Customer Experience stream. Own how we understand customers as they move through the Flix journey, and turn that into opportunities. Advanced SQL in Snowflake, A/B testing, and strong statistical literacy required. Hybrid, 45+ markets."}, {"id": 2, "title": "AI Developer (LLM Products) – Remote", "company": "dexter health", "type": "Full Time", "location": "Cologne, Germany · Remote", "lat": null, "lng": null, "salary": "", "remote": true, "via": "arbeitnow", "posted": 1781472630, "applyPath": "", "category": "Technology & IT", "url": "https://www.arbeitnow.com/jobs/companies/dexter-health/ai-developer-llm-products-remote-cologne-37116", "desc": "Build AI-powered software for care teams to reduce admin workload in healthcare. Hands-on engineering: turn ambiguous product ideas into production-ready AI features. LLM workflows, structured outputs, evaluation loops. Daily use of Claude Code, Cursor, Copilot."}, {"id": 3, "title": "Freelance Bookkeeper & Finance Coordinator", "company": "LevelUp English", "type": "Contract", "location": "Berlin, Germany", "lat": 52.52, "lng": 13.405, "salary": "", "remote": false, "via": "arbeitnow", "posted": 1781465430, "applyPath": "", "category": "Finance & Accounting", "url": "https://www.arbeitnow.com/jobs/companies/levelup-english/freelance-bookkeeper-finance-coordinator-berlin-381385", "desc": "Berlin-based education company seeks a detail-oriented freelance bookkeeper to maintain financial organisation. Manage Spendesk, reconcile invoices, prepare monthly handovers for the tax advisor, and help build a lean, automation-driven finance function. Flexible hybrid working."}, {"id": 4, "title": "Founders Associate (Internship)", "company": "Reviven", "type": "Internship", "location": "Berlin, Germany", "lat": 52.52, "lng": 13.405, "salary": "€1,200/mo", "remote": false, "via": "arbeitnow", "posted": 1781463624, "applyPath": "", "category": "Sales & Marketing", "url": "https://www.arbeitnow.com/jobs/companies/reviven/founders-associate-internship-berlin-229941", "desc": "Early-stage Berlin startup building a platform for acoustic manufacturers. Business development, pipeline building, market research and CRM. AI-native, enrolled in business/economics/engineering, strong communicator. Honest path to a permanent role."}, {"id": 5, "title": "Senior Infrastructure Engineer", "company": "TecTake GmbH", "type": "Full Time", "location": "Igersheim, Germany", "lat": 49.575, "lng": 9.74, "salary": "", "remote": false, "via": "arbeitnow", "posted": 1781483434, "applyPath": "", "category": "Technology & IT", "url": "https://www.arbeitnow.com/jobs/companies/tectake-gmbh/senior-infrastructure-engineer-igersheim-284769", "desc": "Shape and operate the core IT infrastructure of a growing e-commerce company. Windows/Linux servers, virtualisation, Microsoft 365, Active Directory, Azure and Google cloud services, MFA/SSO, automation and scripting. On-prem and cloud."}, {"id": 6, "title": "Senior IT Consultant – PLM & CAD Systems", "company": "CONCAPE", "type": "Full Time", "location": "Bodensee, Germany", "lat": 47.66, "lng": 9.18, "salary": "", "remote": false, "via": "arbeitnow", "posted": 1781472630, "applyPath": "", "category": "Engineering", "url": "https://www.arbeitnow.com/jobs/companies/concape/senior-it-consultant-plm-cad-systems-a-100-raum-bodensee-deutschland-munich-42266", "desc": "Take technical ownership of CAD, PLM and CAM applications for an international electronics and drive-technology firm. Consulting, requirements management, project and release management, 2nd-level support steering. Creo, CATIA or Windchill experience ideal."}, {"id": 7, "title": "Account & Sales Manager (East Germany)", "company": "Ing Plus AG", "type": "Full Time", "location": "Berlin / Brandenburg · Remote", "lat": null, "lng": null, "salary": "", "remote": true, "via": "arbeitnow", "posted": 1781483434, "applyPath": "", "category": "Sales & Marketing", "url": "https://www.arbeitnow.com/jobs/companies/ing-plus-ag/account-sales-manager-ostdeutschland-furth-318191", "desc": "Specialist in intelligent process automation for civil engineering. Develop existing partners and win new customers across Berlin, Brandenburg and surrounding regions. Mostly remote, 3+ years B2B/B2G sales. Company car, 30 days holiday."}, {"id": 8, "title": "Office & HR Manager", "company": "Fritz Wellhöfer GmbH", "type": "Full Time", "location": "Ansbach, Germany", "lat": 49.3, "lng": 10.57, "salary": "", "remote": false, "via": "arbeitnow", "posted": 1781451031, "applyPath": "", "category": "Human Resources", "url": "https://www.arbeitnow.com/jobs/companies/fritz-wellhofer-gmbh-co-kg/office-hr-managerin-sachsen-bei-ansbach-432784", "desc": "Central role in office organisation and HR. Manage all HR processes from onboarding to offboarding, contracts, recruiting support, payroll prep. Permanent full-time position with holiday and Christmas bonuses, flexible hours, family-friendly."}, {"id": 9, "title": "Product Manager (Experienced)", "company": "bedrop", "type": "Full Time", "location": "Mannheim, Germany", "lat": 49.4875, "lng": 8.466, "salary": "", "remote": false, "via": "arbeitnow", "posted": 1781458229, "applyPath": "", "category": "Sales & Marketing", "url": "https://www.arbeitnow.com/jobs/companies/bedrop/produktmanager-berufserfahren-mannheim-234542", "desc": "Fast-growing e-commerce company in health/natural products. Own the product lifecycle, run market and competitor analyses, support pricing and positioning, work closely with marketing, design, purchasing and logistics. Long-term scale-up perspective."}, {"id": 10, "title": "Network Manager – Photonics", "company": "EurA AG", "type": "Full Time", "location": "Ellwangen, Germany", "lat": 48.961, "lng": 10.13, "salary": "", "remote": false, "via": "arbeitnow", "posted": 1781483435, "applyPath": "", "category": "Engineering", "url": "https://www.arbeitnow.com/jobs/companies/eura-ag/netzwerkmanager-photonik-ellwangen-23866", "desc": "International innovation and funding consultancy. Identify technology and market potential, advise clients on innovative projects, build and steer photonics innovation networks, run workshops and events. Physics degree (Master/PhD) ideal; graduates welcome."}, {"id": 11, "title": "Customer Advisor – Accounting Automation (Remote)", "company": "Finmatics GmbH", "type": "Full Time", "location": "Germany · Remote", "lat": null, "lng": null, "salary": "€50,000+", "remote": true, "via": "arbeitnow", "posted": 1781483434, "applyPath": "", "category": "Customer Service", "url": "https://www.arbeitnow.com/jobs/companies/finmatics-gmbh/kundenberater-fur-buchhaltungsautomatisierung-remote-munich-341691", "desc": "Finmatics builds 'Fin', an AI accountant. As a customer advisor you implement solutions, train users and key users, optimise their processes and ensure the software is used to best effect. 100% remote in Germany. Min. salary €50,000."}, {"id": 12, "title": "CAD Design & 3D Print Intern (MedTech)", "company": "Think3DDD", "type": "Internship", "location": "Berlin-Adlershof, Germany", "lat": 52.43, "lng": 13.53, "salary": "Unpaid (mandatory)", "remote": false, "via": "arbeitnow", "posted": 1781474434, "applyPath": "", "category": "Engineering", "url": "https://www.arbeitnow.com/jobs/companies/think3ddd-gbr/pflichtpraktikum-cad-design-fdm-3d-druck-open-source-tools-medtech-startup-berlin-410050", "desc": "Award-winning Berlin startup in 3D scanning, 3D printing and medical technology. Combine CAD design (Fusion 360, Tinkercad, Blender) with FDM 3D printing to build patient-specific orthopaedic parts. Hands-on, real products, flexible hours."}];
+  const _now=Math.floor(Date.now()/1000);
+  PREVIEW.forEach((j,i)=>{j.posted=_now-(i+1)*5400; j.applyPath="__REAL__";});
+  const PREVIEW_MODE = location.protocol==='file:' || window.FMR_PREVIEW;
+  const _fetch = window.fetch.bind(window);
+  const DEMO_MASJID=['Central Mosque','Jamia Masjid','Masjid Al-Falah','Islamic Centre','Masjid Bilal','Madina Mosque','Masjid Umar'];
+  // demo prayer-room signal per company (so the badge shows variety)
+  const DEMO_PRAYER={};
+  if(PREVIEW_MODE){
+    window.fetch = async (url,opts)=>{
+      const u=String(url);
+      if(u.includes('/api/meta')) return new Response(JSON.stringify({liveCount:PREVIEW.length,categories:[{name:'Technology & IT',count:3},{name:'Engineering',count:3},{name:'Sales & Marketing',count:3},{name:'Finance & Accounting',count:1}],types:[]}));
+      if(u.includes('/api/jobs')){
+        const p=new URL(u,'http://x').searchParams; let list=PREVIEW.slice();
+        const cat=p.get('category'); if(cat&&cat!=='All') list=list.filter(j=>j.category===cat);
+        if(p.get('remote')==='1') list=list.filter(j=>j.remote);
+        const q=(p.get('q')||'').toLowerCase(); if(q) list=list.filter(j=>(j.title+j.company+j.desc).toLowerCase().includes(q));
+        const loc=(p.get('location')||'').toLowerCase(); if(loc) list=list.filter(j=>(j.location||'').toLowerCase().includes(loc));
+        return new Response(JSON.stringify({total:list.length,limit:15,offset:0,jobs:list}));
+      }
+      if(u.includes('/api/challenge')){return new Response(JSON.stringify({a:3,b:4,exp:Date.now()+600000,token:'preview'}));}
+      if(u.includes('/api/submit')){return new Response(JSON.stringify({ok:true,message:'Preview mode — on the live site this goes to your approval queue.'}));}
+      if(u.includes('/api/prayer-room/report')){ try{const b=JSON.parse(opts.body); DEMO_PRAYER[b.company.toLowerCase()]={signal:b.has_room?'reported_yes':'reported_no',yes:b.has_room?1:0,no:b.has_room?0:1,detail:b.detail||null};}catch(e){} return new Response(JSON.stringify({ok:true,message:'Thanks — your report helps the community. (Preview)'})); }
+      if(u.includes('/api/prayer-room')){
+        const co=new URL(u,'http://x').searchParams.get('company').toLowerCase();
+        if(DEMO_PRAYER[co]) return new Response(JSON.stringify(Object.assign({company:co,total:1},DEMO_PRAYER[co])));
+        // deterministic demo: ~half have a confirmed room
+        const seed=[...co].reduce((a,c)=>a+c.charCodeAt(0),0);
+        if(seed%3===0) return new Response(JSON.stringify({company:co,signal:'reported_yes',yes:2,no:0,total:2,detail:'Quiet room on 2nd floor'}));
+        return new Response(JSON.stringify({company:co,signal:'unknown',yes:0,no:0,total:0,detail:null}));
+      }
+      if(u.includes('overpass-api.de')){
+        const body=(opts&&opts.body)||'';
+        if(body.includes('multifaith')||body.includes('room')){ // prayer-room OSM lookup
+          const m=body.match(/around:\d+,([\d.-]+),([\d.-]+)/); let s=0; if(m)s=Math.abs(Math.round(+m[1]*9+ +m[2]*5));
+          return new Response(JSON.stringify({elements: s%4===0?[{lat:0,lon:0,tags:{religion:'multifaith'}}]:[]}));
+        }
+        const m=body.match(/around:\d+,([\d.-]+),([\d.-]+)/);
+        let lat=51.5,lng=-0.1; if(m){lat=+m[1];lng=+m[2];}
+        const name=DEMO_MASJID[Math.abs(Math.round(lat*7+lng*13))%DEMO_MASJID.length];
+        const elat=lat+(Math.random()-0.5)*0.03, elng=lng+(Math.random()-0.5)*0.03;
+        return new Response(JSON.stringify({elements:[{lat:elat,lon:elng,tags:{name:name}}]}));
+      }
+      return _fetch(url,opts);
+    };
+  }
+
+  const $ = s => document.querySelector(s);
+  const esc = s => (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const COLORS=["#ff6a1a","#ff8c42","#ffb066","#e8590c","#d9480f"];
+  const colorFor=s=>{let h=0;for(const c of(s||'')) h=(h*31+c.charCodeAt(0))>>>0;return COLORS[h%COLORS.length];};
+  const initials=n=>(n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const domainOf=u=>{try{return new URL(u).hostname.replace(/^www\./,'');}catch(_){return '';}};
+  function logoHTML(j){
+    const dom=domainOf(j.url||'');
+    const bg=colorFor(j.company), ini=initials(j.company);
+    if(dom){
+      // favicon service; on error, swap to the coloured initials fallback
+      return `<div class="logo" style="background:${bg}"><img src="https://www.google.com/s2/favicons?domain=${dom}&sz=64" alt="" loading="lazy" decoding="async" onerror="this.remove()"><span class="ini">${ini}</span></div>`;
+    }
+    return `<div class="logo" style="background:${bg}"><span class="ini">${ini}</span></div>`;
+  }
+  const ago=t=>{if(!t)return'';const s=Date.now()/1000-t;if(s<3600)return Math.max(1,Math.round(s/60))+'m ago';if(s<86400)return Math.round(s/3600)+'h ago';return Math.round(s/86400)+'d ago';};
+
+  const ef=$('#embers');
+  if(ef && !window.matchMedia('(prefers-reduced-motion:reduce)').matches){
+    for(let i=0;i<18;i++){const e=document.createElement('i');e.style.left=Math.random()*100+'%';e.style.animationDuration=(5+Math.random()*7)+'s';e.style.animationDelay=(Math.random()*7)+'s';e.style.width=e.style.height=(2+Math.random()*3)+'px';ef.appendChild(e);}
+  }
+
+  const FILTERS=[['Alcohol','Bars, breweries, wine & spirits roles'],['Gambling','Casinos, betting, lottery, iGaming'],['Interest-based finance','Conventional banking, payday loans, riba'],['Adult content','Nudity, explicit & adult entertainment'],['Non-halal food','Pork handling, abattoir & charcuterie'],['Tobacco & vaping','Cigarettes, vapes, shisha, cannabis']];
+  $('#filter-grid').innerHTML=FILTERS.map(([t,d])=>`<div class="fcard"><div class="x"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg></div><div><h3>${t}</h3><p>${d}</p></div></div>`).join('');
+
+  const I={type:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-linecap="round"/></svg>',pin:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>',arrow:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M7 17 17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round"/></svg>'};
+
+  const state={category:'All',q:'',location:'',remote:false,offset:0,limit:15,total:0,jobs:[],allJobs:[],masjidMax:0};
+  const jobsEl=$('#jobs'), countEl=$('#count');
+
+  function card(j){
+    const loc=j.remote?`<span class="tag remote">${I.pin} Remote</span>`:(j.location?`<span class="tag">${I.pin} ${esc(j.location.split(',')[0])}</span>`:'');
+    const sal=j.salary?`<span class="tag salary">${esc(j.salary)}</span>`:'';
+    const typ=j.type?`<span class="tag">${I.type} ${esc(j.type)}</span>`:'';
+    const post=j.posted?`<span class="tag posted">${ago(j.posted)}</span>`:'';
+    const masjid=(!j.remote&&j.lat!=null&&j.lng!=null)?`<div class="masjid" data-lat="${j.lat}" data-lng="${j.lng}"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2c2.5 2 4 3.8 4 6 0 1.6-1.4 3-4 3s-4-1.4-4-3c0-2.2 1.5-4 4-6Z"/><path d="M4 21v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6"/><path d="M4 21h16M9 21v-3a3 3 0 0 1 6 0v3"/></svg><span>Finding nearest masjid…</span></div>`:'';
+    const prayer=`<button class="prayer" data-company="${esc(j.company)}"${(!j.remote&&j.lat!=null)?` data-lat="${j.lat}" data-lng="${j.lng}"`:''} title="Prayer room at this workplace — community & map data" aria-label="Prayer room info"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 3v4M9 7h6M7 21v-7a5 5 0 0 1 10 0v7M5 21h14"/></svg><span>Prayer room: checking…</span></button>`;
+    const faith=(masjid||prayer)?`<div class="faith-row">${masjid}${prayer}</div>`:'';
+    return `<article class="job" tabindex="0" data-id="${j.id}" aria-label="${esc(j.title)} at ${esc(j.company)}"><div class="job-top">${logoHTML(j)}<div style="min-width:0"><h3>${esc(j.title)}</h3><div class="co">${esc(j.company)}</div><div class="meta">${typ}${loc}${sal}${post}</div>${faith}</div></div><div class="job-foot"><span class="via">via ${esc(j.via)}</span><a class="apply" href="${j.applyPath==='__REAL__'?j.url:API+j.applyPath}" target="_blank" rel="nofollow noopener">View &amp; apply ${I.arrow}</a></div></article>`;
+  }
+
+  let map,marker,mapMode='leaflet';
+  function drawFallbackMap(j){
+    const el=$('#map'); if(!el)return;
+    const remote=!j||j.lat==null||j.lng==null;
+    // Stylised static map: grid streets + pin. Looks intentional, works offline.
+    el.innerHTML=`<svg viewBox="0 0 360 330" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style="display:block">
+      <defs><pattern id="streets" width="46" height="46" patternUnits="userSpaceOnUse">
+        <rect width="46" height="46" fill="#26221d"/>
+        <path d="M0 23h46M23 0v46" stroke="#332d26" stroke-width="2"/>
+      </pattern>
+      <radialGradient id="mglow" cx="50%" cy="42%" r="60%"><stop offset="0" stop-color="#2c2620"/><stop offset="1" stop-color="#1d1916"/></radialGradient></defs>
+      <rect width="360" height="330" fill="url(#mglow)"/>
+      <rect width="360" height="330" fill="url(#streets)" opacity="0.8"/>
+      <path d="M-10 70 L200 120 L360 80" stroke="#3a332b" stroke-width="9" fill="none" opacity="0.7"/>
+      <path d="M120 -10 L150 160 L110 340" stroke="#3a332b" stroke-width="9" fill="none" opacity="0.7"/>
+      <path d="M0 240 L360 210" stroke="#3a332b" stroke-width="7" fill="none" opacity="0.6"/>
+      ${remote?`<text x="180" y="168" text-anchor="middle" fill="#8a8076" font-family="Inter,sans-serif" font-size="14">Remote — no fixed location</text>`:`
+        <g transform="translate(180,150)">
+          <ellipse cx="0" cy="34" rx="13" ry="4" fill="rgba(0,0,0,.35)"/>
+          <path d="M0 32C0 32 16 16 16 4A16 16 0 1 0-16 4C-16 16 0 32 0 32Z" fill="#ff6a1a"/>
+          <circle cx="0" cy="4" r="6" fill="#1b1816"/>
+        </g>`}
+    </svg>`;
+  }
+  function initMap(){
+    if(typeof L==='undefined'){mapMode='fallback';drawFallbackMap(null);return;}
+    try{
+      map=L.map('map',{scrollWheelZoom:false,zoomControl:true}).setView([53,-1.5],5);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+      marker=L.marker([53,-1.5]).addTo(map).setOpacity(0);
+      map.on('click',()=>map.scrollWheelZoom.enable());
+    }catch(_){mapMode='fallback';drawFallbackMap(null);}
+  }
+  function select(j){
+    if(!j)return;
+    document.querySelectorAll('.job').forEach(e=>e.classList.toggle('sel',+e.dataset.id===j.id));
+    $('#map-title').textContent=j.title;$('#map-loc').textContent=j.location||(j.remote?'Remote':'—');
+    if(mapMode==='fallback'){drawFallbackMap(j);return;}
+    if(!map)return;
+    if(j.lat!=null&&j.lng!=null){map.setView([j.lat,j.lng],11,{animate:true});marker.setLatLng([j.lat,j.lng]).setOpacity(1).bindPopup(`<strong>${esc(j.title)}</strong><br>${esc(j.company)}`).openPopup();}
+    else{marker.setOpacity(0).closePopup();}
+  }
+
+  const _apiCache={};
+  async function load(){
+    jobsEl.innerHTML=`<div style="padding:40px;text-align:center;color:var(--muted)">Loading roles…</div>`;
+    const p=new URLSearchParams({limit:state.limit,offset:state.offset});
+    if(state.category&&state.category!=='All')p.set('category',state.category);
+    if(state.q)p.set('q',state.q);if(state.location)p.set('location',state.location);if(state.remote)p.set('remote','1');
+    try{
+      const ck=p.toString(); let d;
+      if(_apiCache[ck]){ d=_apiCache[ck]; }
+      else { const r=await fetch(`${API}/api/jobs?${p}`); if(!r.ok)throw 0; d=await r.json(); _apiCache[ck]=d; }state.jobs=d.jobs;state.total=d.total;state.jobs.forEach(j=>{j._masjid=undefined;});render();prefetchMasjids();
+    }catch(_){
+      jobsEl.innerHTML=`<div style="padding:44px;text-align:center;color:var(--muted)">Couldn't reach the jobs service.<br><span style="font-size:13px">Set <code>FMR_API_BASE</code> to your Worker URL.</span></div>`;
+      countEl.textContent='';
+    }
+  }
+  function visibleJobs(){
+    if(!state.masjidMax) return state.jobs;
+    return state.jobs.filter(j=>{
+      if(j.remote||j.lat==null) return false;
+      const m=j._masjid; // {km} once resolved
+      return m && m.km!=null && parseFloat(m.km)<=state.masjidMax;
+    });
+  }
+  function render(){
+    if(!state.jobs.length){jobsEl.innerHTML=`<div style="padding:48px;text-align:center;color:var(--muted)">No roles match yet. Try another search.</div>`;countEl.textContent=`0 of ${state.total.toLocaleString()} screened roles`;return;}
+    const list=visibleJobs();
+    if(state.masjidMax && !list.length){
+      // still resolving distances?
+      const pending=state.jobs.some(j=>!j.remote&&j.lat!=null&&j._masjid===undefined);
+      jobsEl.innerHTML=`<div style="padding:48px;text-align:center;color:var(--muted)">${pending?'Checking which roles are near a masjid…':'No roles within '+state.masjidMax+' km of a masjid. Try widening the distance.'}</div>`;
+    }else{
+      jobsEl.innerHTML=list.map(card).join('');
+      select(list[0]);
+    }
+    countEl.textContent=`Showing ${list.length.toLocaleString()} of ${state.total.toLocaleString()} screened roles`;
+    const idle=window.requestIdleCallback||(cb=>setTimeout(cb,200));
+    idle(()=>{findMasjids();resolveAllPrayer();});
+  }
+
+  // ---- Nearest masjid via OpenStreetMap Overpass (cached in-memory) ----
+  const masjidCache={};
+  function distKm(a,b,c,d){const R=6371,p=Math.PI/180;const x=Math.sin((c-a)*p/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin((d-b)*p/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+  async function masjidFor(lat,lng){
+    const key=lat.toFixed(3)+','+lng.toFixed(3);
+    if(masjidCache[key]!==undefined) return masjidCache[key];
+    try{
+      const q=`[out:json][timeout:8];(node["amenity"="place_of_worship"]["religion"="muslim"](around:5000,${lat},${lng});way["amenity"="place_of_worship"]["religion"="muslim"](around:5000,${lat},${lng}););out center 8;`;
+      const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:q});
+      const d=await r.json();
+      let best=null;
+      for(const e of (d.elements||[])){
+        const elat=e.lat??e.center?.lat, elng=e.lon??e.center?.lon;
+        if(elat==null)continue;
+        const km=distKm(lat,lng,elat,elng);
+        if(!best||km<+best.km) best={name:e.tags?.name||'Masjid',km:km.toFixed(1)};
+      }
+      masjidCache[key]=best; return best;
+    }catch(_){ masjidCache[key]=null; return null; }
+  }
+  async function findMasjids(){
+    const nodes=[...document.querySelectorAll('.masjid')];
+    for(const el of nodes){
+      const lat=+el.dataset.lat, lng=+el.dataset.lng;
+      const jid=+el.closest('.job')?.dataset.id;
+      const set=(txt)=>{const s=el.querySelector('span');if(s)s.textContent=txt;};
+      const m=await masjidFor(lat,lng);
+      const job=state.jobs.find(j=>j.id===jid); if(job) job._masjid=m||{km:null};
+      set(m?`Nearest masjid: ${m.name} · ${m.km} km`:'No masjid found nearby');
+    }
+  }
+  // Prefetch distances for the whole result set so the filter is accurate.
+  async function prefetchMasjids(){
+    for(const j of state.jobs){
+      if(j.remote||j.lat==null){ j._masjid={km:null}; continue; }
+      if(j._masjid!==undefined) continue;
+      j._masjid=(await masjidFor(j.lat,j.lng))||{km:null};
+    }
+    if(state.masjidMax) render();
+  }
+
+  // ---- Prayer room signal: community reports (your API) + OSM multifaith nearby ----
+  const prayerCache={};
+  async function osmMultifaith(lat,lng){
+    const key='mf'+lat.toFixed(3)+','+lng.toFixed(3);
+    if(prayerCache[key]!==undefined) return prayerCache[key];
+    try{
+      // prayer/quiet rooms within 250m of the office footprint
+      const q=`[out:json][timeout:8];(node["amenity"="place_of_worship"]["religion"="multifaith"](around:250,${lat},${lng});node["room"="prayer"](around:250,${lat},${lng}););out 1;`;
+      const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:q});
+      const d=await r.json();
+      prayerCache[key]=(d.elements&&d.elements.length>0); return prayerCache[key];
+    }catch(_){ prayerCache[key]=null; return null; }
+  }
+  async function resolvePrayer(btn){
+    const company=btn.dataset.company, lat=btn.dataset.lat?+btn.dataset.lat:null, lng=btn.dataset.lng?+btn.dataset.lng:null;
+    const span=btn.querySelector('span');
+    let community=null;
+    try{ const r=await fetch(`${API}/api/prayer-room?company=${encodeURIComponent(company)}`); community=await r.json(); }catch(_){}
+    let osm=null;
+    if(lat!=null) osm=await osmMultifaith(lat,lng);
+    // Decide label + confidence
+    let cls='unknown', txt='Prayer room: unconfirmed · tap to report';
+    if(community&&community.signal==='reported_yes'){ cls='yes'; txt=`Prayer room: yes (${community.yes} confirmed${community.detail?' · '+community.detail:''})`; }
+    else if(community&&community.signal==='reported_no'){ cls='no'; txt='Prayer room: reported none'; }
+    else if(osm===true){ cls='yes'; txt='Prayer/quiet room nearby (map data)'; }
+    else if(community&&community.signal==='mixed'){ cls='maybe'; txt='Prayer room: mixed reports · tap to add'; }
+    btn.classList.remove('yes','no','maybe','unknown'); btn.classList.add(cls);
+    if(span) span.textContent=txt;
+  }
+  function resolveAllPrayer(){ document.querySelectorAll('.prayer').forEach(b=>resolvePrayer(b)); }
+
+  // Tap a prayer badge to report
+  let prayerTarget=null;
+  jobsEl.addEventListener('click',e=>{
+    const b=e.target.closest('.prayer'); if(!b)return;
+    e.stopPropagation(); prayerTarget=b.dataset.company; openPrayerModal(b.dataset.company);
+  });
+  jobsEl.addEventListener('click',e=>{if(e.target.closest('.apply'))return;const el=e.target.closest('.job');if(el)select(state.jobs.find(j=>j.id===+el.dataset.id));});
+  jobsEl.addEventListener('keydown',e=>{if(e.key!=='Enter')return;const el=e.target.closest('.job');if(el)select(state.jobs.find(j=>j.id===+el.dataset.id));});
+  $('#searchbar').addEventListener('submit',e=>{e.preventDefault();const i=e.target.querySelectorAll('input');state.q=i[0].value.trim();state.location=i[1].value.trim();state.offset=0;load();});
+
+  function bindChips(){
+    document.querySelectorAll('#chips .chip').forEach(c=>c.addEventListener('click',()=>{
+      document.querySelectorAll('#chips .chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');
+      const t=c.dataset.full||c.textContent.trim();
+      if(t==='Remote'){state.remote=true;state.category='All';}else{state.remote=false;state.category=t==='All'?'All':t;}
+      state.offset=0;load();
+    }));
+  }
+
+  async function loadMeta(){
+    try{
+      const r=await fetch(`${API}/api/meta`);if(!r.ok){bindChips();return;}const m=await r.json();
+      if(m.liveCount!=null)$('#trust-count').textContent=m.liveCount.toLocaleString()+' live roles';
+      const top=(m.categories||[]).filter(c=>c.name&&c.name!=='Other').slice(0,4);
+      if(top.length){
+        $('#chips').innerHTML=`<button class="chip active" data-full="All">All</button>`+top.map(c=>`<button class="chip" data-full="${esc(c.name)}">${esc(c.name.split(' ')[0])}</button>`).join('')+`<button class="chip" data-full="Remote">Remote</button>`;
+      }
+      bindChips();
+    }catch(_){bindChips();}
+  }
+
+  // ---- Prayer-room report modal ----
+  const prayerModal=$('#prayer-modal'),prayerForm=$('#prayer-form'),prayerMsg=$('#prayer-msg');
+  let prayerVal=null, prayerCompany='';
+  function openPrayerModal(company){
+    prayerCompany=company; prayerVal=null;
+    $('#prayer-co').textContent=company||'this workplace';
+    prayerMsg.className='form-msg'; prayerMsg.textContent='';
+    prayerForm.reset(); $('#prayer-submit').disabled=true;
+    document.querySelectorAll('.pc-btn').forEach(b=>b.classList.remove('sel'));
+    prayerModal.classList.add('open'); document.body.style.overflow='hidden';
+  }
+  function closePrayerModal(){ prayerModal.classList.remove('open'); document.body.style.overflow=''; }
+  $('#prayer-close').addEventListener('click',closePrayerModal);
+  prayerModal.addEventListener('click',e=>{if(e.target===prayerModal)closePrayerModal();});
+  document.querySelectorAll('.pc-btn').forEach(b=>b.addEventListener('click',()=>{
+    prayerVal=b.dataset.val; document.querySelectorAll('.pc-btn').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel'); $('#prayer-submit').disabled=false;
+  }));
+  prayerForm.addEventListener('submit',async e=>{
+    e.preventDefault(); if(prayerVal===null)return;
+    const btn=$('#prayer-submit'); btn.disabled=true; btn.textContent='Submitting…';
+    const fd=new FormData(prayerForm);
+    try{
+      const r=await fetch(`${API}/api/prayer-room/report`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({company:prayerCompany,has_room:prayerVal==='1',detail:fd.get('detail')||'',website:fd.get('website')||''})});
+      const d=await r.json();
+      if(r.ok&&d.ok){ prayerMsg.className='form-msg ok'; prayerMsg.textContent=d.message||'Thank you!';
+        // refresh the badges for this company
+        document.querySelectorAll(`.prayer[data-company="${CSS.escape(prayerCompany)}"]`).forEach(b=>{delete prayerCache['mf'+b.dataset.lat]; resolvePrayer(b);});
+        setTimeout(closePrayerModal,1200);
+      } else { prayerMsg.className='form-msg err'; prayerMsg.textContent=d.error||'Something went wrong.'; }
+    }catch(_){ prayerMsg.className='form-msg err'; prayerMsg.textContent='Could not reach the service.'; }
+    btn.disabled=false; btn.textContent='Submit report';
+  });
+
+  const modal=$('#modal'),form=$('#post-form'),msg=$('#form-msg');
+  let challenge=null;
+  async function refreshChallenge(){try{const r=await fetch(`${API}/api/challenge`);challenge=await r.json();$('#captcha-q').textContent=`Verify: ${challenge.a} + ${challenge.b} = ?`;}catch(_){$('#captcha-q').textContent='Verify: (service offline)';}}
+  function openModal(){modal.classList.add('open');document.body.style.overflow='hidden';msg.className='form-msg';msg.textContent='';refreshChallenge();}
+  function closeModal(){modal.classList.remove('open');document.body.style.overflow='';}
+  ['#nav-post','#post-btn-2','#post-btn-3'].forEach(s=>{const el=$(s);if(el)el.addEventListener('click',e=>{e.preventDefault();openModal();});});
+  document.querySelectorAll('.post-link').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();openModal();}));
+  $('#modal-close').addEventListener('click',closeModal);
+  modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))closeModal();});
+
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();msg.className='form-msg';msg.textContent='';
+    const btn=$('#post-submit');btn.disabled=true;btn.textContent='Submitting…';
+    const fd=new FormData(form);const body=Object.fromEntries(fd.entries());
+    body.remote=/remote/i.test(body.location||'');
+    if(challenge){body.exp=challenge.exp;body.token=challenge.token;}
+    try{
+      const r=await fetch(`${API}/api/submit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const d=await r.json();
+      if(r.ok&&d.ok){msg.className='form-msg ok';msg.textContent=d.message||'Submitted for review. Thank you!';form.reset();}
+      else{msg.className='form-msg err';msg.textContent=d.error||'Something went wrong.';refreshChallenge();}
+    }catch(_){msg.className='form-msg err';msg.textContent='Could not reach the service. Try again.';}
+    btn.disabled=false;btn.textContent='Submit for review';
+  });
+
+  // masjid distance filter
+  const mt=$('#masjid-toggle'), md=$('#masjid-dist');
+  function syncMasjidFilter(){
+    const on=mt.getAttribute('aria-pressed')==='true';
+    md.disabled=!on;
+    state.masjidMax=on?parseFloat(md.value):0;
+    render();
+    if(on) prefetchMasjids();
+  }
+  mt.addEventListener('click',()=>{mt.setAttribute('aria-pressed',mt.getAttribute('aria-pressed')==='true'?'false':'true');syncMasjidFilter();});
+  md.addEventListener('change',()=>{if(mt.getAttribute('aria-pressed')==='true')syncMasjidFilter();});
+  md.disabled=true;
+
+  try{initMap();}catch(e){}
+  loadMeta();load();
+})();
+</script>
+</body>
+</html>
